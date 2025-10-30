@@ -33,7 +33,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-cream border-b-2 border-maroon-20 shadow-custom fixed top-0 left-0 right-0 z-50">
+    <header className="bg-cream border-b-2 border-maroon-20 shadow-custom fixed top-0 left-0 right-0 z-50 py-8 sm:py-4">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           
