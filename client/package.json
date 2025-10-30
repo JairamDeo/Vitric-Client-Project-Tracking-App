@@ -12,8 +12,8 @@
   "dependencies": {
     "@fontsource/comic-neue": "^5.2.5",
     "aos": "^2.3.4",
-    "axios": "^1.8.4",
-    "dotenv": "^16.5.0",
+    "axios": "^1.13.1",
+    "dotenv": "^16.6.1",
     "framer-motion": "^12.8.2",
     "js-cookie": "^3.0.5",
     "jspdf": "^3.0.1",

@@ -7,6 +7,8 @@ import {
   useLocation,
 } from "react-router-dom";
 
+import { AuthProvider } from './context/AuthContext';
+
 function ScrollToTop() {
   const location = useLocation();
 
@@ -26,20 +28,22 @@ const AdminLogin = lazy(() => import('./Admin/AdminLogin'));
 function App() {
 
   return (
-    <Router>
-      <div >
-        <ScrollToTop /> {/* Scroll to top on route change */}
-        <Header/>
-        <Suspense fallback={<div className="text-center p-4"></div>}>
-          <Routes>
-            <Route exact path='/' element={<Dashboard />} />
-            <Route exact path='/client' element={<Clients />} />
-            <Route exact path='/project' element={<Projects />} />
-            <Route exact path='/admin-login' element={<AdminLogin />} />
-         </Routes>
-        </Suspense>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div >
+          <ScrollToTop /> {/* Scroll to top on route change */}
+          <Header />
+          <Suspense fallback={<div className="text-center p-4"></div>}>
+            <Routes>
+              <Route exact path='/' element={<Dashboard />} />
+              <Route exact path='/client' element={<Clients />} />
+              <Route exact path='/project' element={<Projects />} />
+              <Route exact path='/admin-login' element={<AdminLogin />} />
+            </Routes>
+          </Suspense>
+        </div>
+      </Router>
+    </AuthProvider>
   )
 }
 
