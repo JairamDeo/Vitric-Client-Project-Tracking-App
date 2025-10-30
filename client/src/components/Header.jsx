@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Users, Briefcase, Lock } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
 const Header = () => {
@@ -8,10 +8,10 @@ const Header = () => {
   const location = useLocation();
 
   const navItems = [
-    { name: 'Dashboard', path: '/' },
-    { name: 'Clients', path: '/client' },
-    { name: 'Projects', path: '/project' },
-    { name: 'Admin', path: '/admin-login' }
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Clients', path: '/client', icon: Users },
+    { name: 'Projects', path: '/project', icon: Briefcase },
+    { name: 'Admin', path: '/admin-login', icon: Lock }
   ];
 
   const toggleMobileMenu = () => {
@@ -33,13 +33,13 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-cream border-b-2 border-maroon-20 shadow-custom sticky top-0 z-50">
+    <header className="bg-cream border-b-2 border-maroon-20 shadow-custom fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           
-          {/* Logo - Left Side */}
+          {/* Logo - Left Side with 150px width */}
           <div className="flex items-center">
-            <div className="w-16 h-12 md:w-20 md:h-14 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 p-2">
+            <div className="w-[150px] h-12 md:h-14 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 p-2">
               <img src={logo} alt="Logo" className="w-full h-full object-contain" />
             </div>
           </div>
@@ -53,7 +53,7 @@ const Header = () => {
 
           {/* Mobile - Center Title (Full Name) */}
           <div className="md:hidden flex-1 flex justify-center px-2">
-            <h1 className="text-sm font-bold text-maroon tracking-wide text-center leading-tight">
+            <h1 className="text-xs font-bold text-maroon tracking-wide text-center leading-tight">
               Client Project Tracking
             </h1>
           </div>
@@ -96,34 +96,29 @@ const Header = () => {
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         } border-l-2 border-maroon-20`}
       >
-        {/* Mobile Menu Header with Logo and Title */}
-        <div className="flex items-center justify-center p-6 border-b-2 border-maroon-20">
-          <div className="w-16 h-12 bg-white rounded-lg flex items-center justify-center shadow-md p-2 mr-3">
-            <img src={logo} alt="Logo" className="w-full h-full object-contain" />
-          </div>
-          <h2 className="text-lg font-bold text-maroon text-center leading-tight">
-            Client Project<br />Tracking
-          </h2>
-        </div>
-
+        {/* Mobile Navigation with Icons (No Logo/Title) */}
         <nav className="flex flex-col p-6 space-y-3">
-          {navItems.map((item, index) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              onClick={handleNavClick}
-              style={{ animationDelay: `${index * 50}ms` }}
-              className={`px-6 py-3 rounded-lg font-medium text-base transition-all duration-300 text-left transform hover:scale-105 ${
-                isMobileMenuOpen ? 'animate-slideUp' : ''
-              } ${
-                isActive(item.path)
-                  ? 'bg-maroon text-cream shadow-md'
-                  : 'text-darkBrown hover:bg-lightPink hover:text-maroon'
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
+          {navItems.map((item, index) => {
+            const IconComponent = item.icon;
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                onClick={handleNavClick}
+                style={{ animationDelay: `${index * 50}ms` }}
+                className={`px-6 py-3 rounded-lg font-medium text-base transition-all duration-300 text-left transform hover:scale-105 flex items-center gap-3 ${
+                  isMobileMenuOpen ? 'animate-slideUp' : ''
+                } ${
+                  isActive(item.path)
+                    ? 'bg-maroon text-cream shadow-md'
+                    : 'text-darkBrown hover:bg-lightPink hover:text-maroon'
+                }`}
+              >
+                <IconComponent className="w-5 h-5" />
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 

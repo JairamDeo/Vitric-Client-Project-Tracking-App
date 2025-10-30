@@ -6,6 +6,7 @@ const ProjectDetailsModal = React.memo(({ project, onClose, onEdit, onDelete }) 
 
   if (!project) return null;
 
+  
   const handleDelete = () => {
     onDelete(project.id);
     onClose();
