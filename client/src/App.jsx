@@ -30,7 +30,7 @@ function App() {
       <div >
         <ScrollToTop /> {/* Scroll to top on route change */}
         <Header/>
-        <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
+        <Suspense fallback={<div className="text-center p-4"></div>}>
           <Routes>
             <Route exact path='/' element={<Dashboard />} />
             <Route exact path='/client' element={<Clients />} />

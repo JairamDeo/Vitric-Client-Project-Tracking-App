@@ -168,7 +168,7 @@ const Clients = () => {
   if (isLoading) {
     return (
       <Suspense fallback={<div>Loading...</div>}>
-        <LoadingBar />
+        <LoadingBar text="Clients" />
       </Suspense>
     );
   }

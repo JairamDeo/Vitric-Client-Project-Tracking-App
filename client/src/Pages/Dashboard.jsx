@@ -84,7 +84,7 @@ const Dashboard = () => {
   if (isLoading) {
     return (
       <Suspense fallback={<div>Loading...</div>}>
-        <LoadingBar />
+        <LoadingBar text="Dashboard" />
       </Suspense>
     );
   }
@@ -99,7 +99,7 @@ const Dashboard = () => {
         </div>
 
         {/* Statistics Cards */}
-        <Suspense fallback={<div className="text-center">Loading stats...</div>}>
+        <Suspense fallback={<div className="text-center"></div>}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {stats.map((stat, index) => (
               <div 
@@ -120,7 +120,7 @@ const Dashboard = () => {
         </Suspense>
 
         {/* Recent Projects Section */}
-        <Suspense fallback={<div className="text-center">Loading projects...</div>}>
+        <Suspense fallback={<div className="text-center"></div>}>
           <div className="animate-fadeIn">
             <h2 className="text-2xl font-bold text-darkBrown mb-6">Recent Projects</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
