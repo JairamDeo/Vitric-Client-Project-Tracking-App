@@ -19,6 +19,7 @@ function ScrollToTop() {
 }
 
 const Header = lazy(() => import('./components/Header'));
+const Footer = lazy(() => import('./components/Footer'));
 
 const Dashboard = lazy(() => import('./Pages/Dashboard'));
 const Clients = lazy(() => import('./Pages/Clients'));
@@ -43,6 +44,7 @@ function App() {
             
           </Suspense>
         </div>
+        <Footer />
       </Router>
     </AuthProvider>
   )

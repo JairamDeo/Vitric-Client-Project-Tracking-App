@@ -54,24 +54,28 @@ const Header = () => {
 
           {/* Logo */}
           <div className="flex items-center">
-            <div className="w-[100px] md:w-[220px] h-10 md:h-16 rounded-lg flex items-center justify-center duration-300 p-2">
-              <img 
-                src="assets/logo.svg" 
-                alt="Logo" 
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = '<span class="text-maroon font-bold text-xl">LOGO</span>';
-                }}
-              />
-            </div>
+            <Link to="/">
+              <div className="w-[100px] md:w-[220px] h-10 md:h-16 rounded-lg flex items-center justify-center duration-300 p-2">
+                <img
+                  src="assets/logo.svg"
+                  alt="Logo"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<span class="text-maroon font-bold text-xl">LOGO</span>';
+                  }}
+                />
+              </div>
+            </Link>
           </div>
 
           {/* Desktop - Center Title */}
           <div className="hidden md:flex items-center justify-center flex-1 mx-8">
-            <h1 className="text-2xl lg:text-3xl font-bold text-maroon tracking-wide">
-              Client Project Tracking
-            </h1>
+            <Link to="/">
+              <h1 className="text-2xl lg:text-3xl font-bold text-maroon tracking-wide">
+                Client Project Tracking
+              </h1>
+            </Link>
           </div>
 
           {/* Mobile - Center Title - BIGGER FONT */}
