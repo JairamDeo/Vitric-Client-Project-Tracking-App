@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Users, Briefcase, LogOut } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Users, Briefcase, Lock, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
 
@@ -30,27 +30,32 @@ const Header = () => {
     navigate('/admin-login');
   };
 
+  const handleAdminClick = () => {
+    setIsMobileMenuOpen(false);
+    navigate('/admin-login');
+  };
+
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
   const isActive = (path) => {
+    // Exact match for paths
     return location.pathname === path;
   };
 
-  // Don't show header on login page
-  if (location.pathname === '/admin-login') {
-    return null;
-  }
+  const isAdminPageActive = () => {
+    return location.pathname === '/admin-login';
+  };
 
   return (
     <header className="bg-cream border-b-2 border-maroon-20 shadow-custom fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
-          
+
           {/* Logo */}
           <div className="flex items-center">
-            <div className="w-[150px] h-12 md:h-14 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 p-2">
+            <div className="w-[100px] md:w-[150px] h-10 md:h-14 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 p-2">
               <img src={logo} alt="Logo" className="w-full h-full object-contain" />
             </div>
           </div>
@@ -62,9 +67,9 @@ const Header = () => {
             </h1>
           </div>
 
-          {/* Mobile - Center Title */}
+          {/* Mobile - Center Title - BIGGER FONT */}
           <div className="md:hidden flex-1 flex justify-center px-2">
-            <h1 className="text-xs font-bold text-maroon tracking-wide text-center leading-tight">
+            <h1 className="text-[14px] font-bold text-maroon tracking-wide text-center leading-tight">
               Client Project Tracking
             </h1>
           </div>
@@ -75,24 +80,34 @@ const Header = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`px-4 lg:px-6 py-2 rounded-lg font-medium text-sm lg:text-base transition-all duration-300 transform hover:scale-105 ${
-                  isActive(item.path)
+                className={`px-4 lg:px-6 py-2 rounded-lg font-medium text-sm lg:text-base transition-all duration-300 transform hover:scale-105 ${isActive(item.path)
                     ? 'bg-maroon text-cream shadow-md'
                     : 'text-darkBrown hover:bg-lightPink hover:text-maroon'
-                }`}
+                  }`}
               >
                 {item.name}
               </Link>
             ))}
-            
-            {/* Logout Button - Desktop */}
-            {isAuthenticated && (
+
+            {/* Admin/Logout Button - Desktop */}
+            {isAuthenticated ? (
               <button
                 onClick={handleLogout}
                 className="px-4 lg:px-6 py-2 rounded-lg font-medium text-sm lg:text-base transition-all duration-300 transform hover:scale-105 text-red-600 hover:bg-red-50 flex items-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
                 Logout
+              </button>
+            ) : (
+              <button
+                onClick={handleAdminClick}
+                className={`px-4 lg:px-6 py-2 rounded-lg font-medium text-sm lg:text-base transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-md ${isAdminPageActive()
+                    ? 'bg-maroon text-cream'
+                    : 'bg-maroon text-cream hover:bg-darkMaroon'
+                  }`}
+              >
+                <Lock className="w-4 h-4" />
+                Admin
               </button>
             )}
           </nav>
@@ -114,17 +129,9 @@ const Header = () => {
 
       {/* Mobile Sliding Menu */}
       <div
-        className={`md:hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-64 bg-cream shadow-2xl transform transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        } border-l-2 border-maroon-20`}
+        className={`md:hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-64 bg-cream shadow-2xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          } border-l-2 border-maroon-20`}
       >
-        {/* Admin Info - Mobile */}
-        {isAuthenticated && admin && (
-          <div className="p-4 border-b-2 border-maroon-20 bg-white">
-            <p className="text-xs text-gray-500">Logged in as</p>
-            <p className="text-sm font-semibold text-darkBrown truncate">{admin.email}</p>
-          </div>
-        )}
 
         {/* Mobile Navigation */}
         <nav className="flex flex-col p-6 space-y-3">
@@ -136,13 +143,11 @@ const Header = () => {
                 to={item.path}
                 onClick={handleNavClick}
                 style={{ animationDelay: `${index * 50}ms` }}
-                className={`px-6 py-3 rounded-lg font-medium text-base transition-all duration-300 text-left transform hover:scale-105 flex items-center gap-3 ${
-                  isMobileMenuOpen ? 'animate-slideUp' : ''
-                } ${
-                  isActive(item.path)
+                className={`px-6 py-3 rounded-lg font-medium text-base transition-all duration-300 text-left transform hover:scale-105 flex items-center gap-3 ${isMobileMenuOpen ? 'animate-slideUp' : ''
+                  } ${isActive(item.path)
                     ? 'bg-maroon text-cream shadow-md'
                     : 'text-darkBrown hover:bg-lightPink hover:text-maroon'
-                }`}
+                  }`}
               >
                 <IconComponent className="w-5 h-5" />
                 {item.name}
@@ -150,14 +155,25 @@ const Header = () => {
             );
           })}
 
-          {/* Logout Button - Mobile */}
-          {isAuthenticated && (
+          {/* Admin/Logout Button - Mobile */}
+          {isAuthenticated ? (
             <button
               onClick={handleLogout}
               className="px-6 py-3 rounded-lg font-medium text-base transition-all duration-300 text-left transform hover:scale-105 flex items-center gap-3 text-red-600 hover:bg-red-50 border-t-2 border-maroon-20 mt-4 pt-6"
             >
               <LogOut className="w-5 h-5" />
               Logout
+            </button>
+          ) : (
+            <button
+              onClick={handleAdminClick}
+              className={`px-6 py-3 rounded-lg font-medium text-base transition-all duration-300 text-left transform hover:scale-105 flex items-center gap-3 ${isAdminPageActive()
+                  ? 'bg-maroon text-cream shadow-md'
+                  : 'text-darkBrown hover:bg-lightPink hover:text-maroon'
+                }`}
+            >
+              <Lock className="w-5 h-5" />
+              Admin Login
             </button>
           )}
         </nav>
