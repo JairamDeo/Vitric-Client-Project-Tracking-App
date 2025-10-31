@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { Search, Plus, X } from 'lucide-react';
+import { Search, Plus, X, CheckCircle, AlertTriangle, XCircle, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { clientAPI, projectAPI } from '../utils/apiService';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,6 +9,7 @@ const ClientDetailsModal = lazy(() => import('../components/ClientDetailsModal')
 const LoadingBar = lazy(() => import('../components/LoadingBar'));
 
 const Clients = () => {
+  const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +20,15 @@ const Clients = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   
+  // Alert Modal State
+  const [alertModal, setAlertModal] = useState({
+    show: false,
+    type: 'success',
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
   const { isAuthenticated } = useAuth();
 
   // Form state
@@ -28,6 +39,32 @@ const Clients = () => {
   });
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Show Alert Modal Helper
+  const showAlert = (type, title, message, onConfirm = null) => {
+    setAlertModal({
+      show: true,
+      type,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({
+      show: false,
+      type: 'success',
+      title: '',
+      message: '',
+      onConfirm: null,
+    });
+  };
+
+  const handleLoginRedirect = () => {
+    closeAlert();
+    navigate('/admin-login');
+  };
 
   useEffect(() => {
     fetchClients();
@@ -66,7 +103,6 @@ const Clients = () => {
 
   const handleViewDetails = async (client) => {
     try {
-      // Fetch full client details with projects
       const response = await clientAPI.getById(client._id);
       if (response.success) {
         setSelectedClient(response.data);
@@ -74,13 +110,13 @@ const Clients = () => {
       }
     } catch (error) {
       console.error('Error fetching client details:', error);
-      alert('Failed to load client details');
+      showAlert('error', 'Error', 'Failed to load client details');
     }
   };
 
   const handleAddClient = () => {
     if (!isAuthenticated) {
-      alert('Please login to add clients');
+      showAlert('login', 'Login Required', 'Please login as admin to add new clients');
       return;
     }
     setFormData({ name: '', email: '', phone: '' });
@@ -91,7 +127,7 @@ const Clients = () => {
 
   const handleEditClient = (client) => {
     if (!isAuthenticated) {
-      alert('Please login to edit clients');
+      showAlert('login', 'Login Required', 'Please login as admin to edit clients');
       return;
     }
     setFormData({
@@ -107,24 +143,27 @@ const Clients = () => {
 
   const handleDeleteClient = async (clientId) => {
     if (!isAuthenticated) {
-      alert('Please login to delete clients');
+      showAlert('login', 'Login Required', 'Please login as admin to delete clients');
       return;
     }
 
-    if (!window.confirm('⚠️ Are you sure you want to delete this client?\n\nThis will also delete ALL projects associated with this client!')) {
-      return;
-    }
-
-    try {
-      const response = await clientAPI.delete(clientId);
-      if (response.success) {
-        setClients(clients.filter(c => c._id !== clientId));
-        alert('✅ Client deleted successfully!');
+    showAlert(
+      'confirm',
+      'Delete Client',
+      'Are you sure you want to delete this client? This will also delete ALL projects associated with this client! This action cannot be undone.',
+      async () => {
+        try {
+          const response = await clientAPI.delete(clientId);
+          if (response.success) {
+            setClients(clients.filter(c => c._id !== clientId));
+            showAlert('success', 'Success!', 'Client deleted successfully!');
+          }
+        } catch (error) {
+          console.error('Error deleting client:', error);
+          showAlert('error', 'Delete Failed', error.response?.data?.message || 'Failed to delete client. Please try again.');
+        }
       }
-    } catch (error) {
-      console.error('Error deleting client:', error);
-      alert(error.response?.data?.message || '❌ Failed to delete client. Please try again.');
-    }
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -158,9 +197,13 @@ const Clients = () => {
       }
 
       if (response.success) {
-        alert(isEditMode ? '✅ Client updated successfully!' : '✅ Client created successfully!');
         setIsFormModalOpen(false);
         fetchClients();
+        showAlert(
+          'success',
+          'Success!',
+          isEditMode ? 'Client updated successfully!' : 'Client created successfully!'
+        );
       }
     } catch (error) {
       console.error('Error saving client:', error);
@@ -175,7 +218,7 @@ const Clients = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setFormError(''); // Clear error on input change
+    setFormError('');
   };
 
   if (isLoading) {
@@ -187,7 +230,7 @@ const Clients = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream pt-16 md:pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 animate-fadeIn">
@@ -222,16 +265,14 @@ const Clients = () => {
             />
           </div>
 
-          {/* Add Client Button - Only for logged-in admin */}
-          {isAuthenticated && (
-            <button
-              onClick={handleAddClient}
-              className="w-full md:w-auto bg-maroon text-cream px-6 py-3 rounded-xl font-semibold hover:bg-darkMaroon transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Add New Client
-            </button>
-          )}
+          {/* Add Client Button - ALWAYS VISIBLE */}
+          <button
+            onClick={handleAddClient}
+            className="w-full md:w-auto bg-maroon text-cream px-6 py-3 rounded-xl font-semibold hover:bg-darkMaroon transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Client
+          </button>
         </div>
 
         {/* Clients Grid */}
@@ -371,6 +412,80 @@ const Clients = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Alert Modal */}
+        {alertModal.show && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4 animate-fadeIn">
+            <div className="bg-cream rounded-2xl shadow-2xl border-2 border-maroon overflow-hidden max-w-md w-full animate-zoomIn">
+              {/* Header with Icon */}
+              <div className={`p-6 text-center ${
+                alertModal.type === 'success' ? 'bg-gradient-to-r from-maroon to-darkMaroon' :
+                alertModal.type === 'error' ? 'bg-gradient-to-r from-red-600 to-red-800' :
+                alertModal.type === 'warning' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                alertModal.type === 'login' ? 'bg-gradient-to-r from-blue-600 to-blue-800' :
+                'bg-gradient-to-r from-maroon to-darkMaroon'
+              }`}>
+                <div className="w-16 h-16 bg-cream rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                  {alertModal.type === 'success' && <CheckCircle className="w-10 h-10 text-maroon" />}
+                  {alertModal.type === 'error' && <XCircle className="w-10 h-10 text-red-600" />}
+                  {alertModal.type === 'warning' && <AlertTriangle className="w-10 h-10 text-yellow-600" />}
+                  {alertModal.type === 'login' && <LogIn className="w-10 h-10 text-blue-600" />}
+                  {alertModal.type === 'confirm' && <AlertTriangle className="w-10 h-10 text-maroon" />}
+                </div>
+                <h3 className="text-2xl font-bold text-cream">{alertModal.title}</h3>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 text-center">
+                <p className="text-darkBrown mb-6">{alertModal.message}</p>
+
+                {/* Buttons */}
+                {alertModal.type === 'confirm' ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={closeAlert}
+                      className="flex-1 px-6 py-3 border-2 border-maroon-20 text-darkBrown rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (alertModal.onConfirm) alertModal.onConfirm();
+                        closeAlert();
+                      }}
+                      className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all duration-300 transform hover:scale-105 shadow-md"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : alertModal.type === 'login' ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={closeAlert}
+                      className="flex-1 px-6 py-3 border-2 border-maroon-20 text-darkBrown rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleLoginRedirect}
+                      className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2"
+                    >
+                      <LogIn className="w-5 h-5" />
+                      Go to Login
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={closeAlert}
+                    className="w-full px-6 py-3 bg-maroon text-cream rounded-lg font-semibold hover:bg-darkMaroon transition-all duration-300 transform hover:scale-105 shadow-md"
+                  >
+                    OK
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

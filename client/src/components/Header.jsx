@@ -101,12 +101,12 @@ const Header = () => {
             ) : (
               <button
                 onClick={handleAdminClick}
-                className={`px-4 lg:px-6 py-2 rounded-lg font-medium text-sm lg:text-base transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-md ${isAdminPageActive()
-                    ? 'bg-maroon text-cream'
-                    : 'bg-maroon text-cream hover:bg-darkMaroon'
+                className={`px-4 lg:px-6 py-2 rounded-lg font-medium text-sm lg:text-base transition-all duration-300 transform hover:scale-105 flex items-center gap-2  ${isAdminPageActive()
+                   ? 'bg-maroon text-cream shadow-md'
+                    : 'text-darkBrown hover:bg-lightPink hover:text-maroon'
                   }`}
               >
-                <Lock className="w-4 h-4" />
+                {/* <Lock className="w-4 h-4" /> */}
                 Admin
               </button>
             )}
