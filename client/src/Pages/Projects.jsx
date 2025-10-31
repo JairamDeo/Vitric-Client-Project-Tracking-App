@@ -56,11 +56,37 @@ const Projects = () => {
         clientAPI.getAll(),
       ]);
 
-      if (projectsResponse.success) {
-        setProjects(projectsResponse.data);
-      }
-      if (clientsResponse.success) {
-        setClients(clientsResponse.data);
+      if (projectsResponse.success && clientsResponse.success) {
+        const fetchedProjects = projectsResponse.data;
+        const fetchedClients = clientsResponse.data;
+        
+        // Create a map of client IDs to client objects for quick lookup
+        const clientMap = {};
+        fetchedClients.forEach(client => {
+          clientMap[client._id] = client;
+        });
+        
+        // Manually populate client data if not already populated
+        const populatedProjects = fetchedProjects.map(project => {
+          // If client is just an ID string, replace it with the full client object
+          if (typeof project.client === 'string') {
+            return {
+              ...project,
+              client: clientMap[project.client] || { name: 'Unknown Client' }
+            };
+          }
+          // If client is already an object but might be missing data
+          if (project.client && !project.client.name && clientMap[project.client._id]) {
+            return {
+              ...project,
+              client: clientMap[project.client._id]
+            };
+          }
+          return project;
+        });
+        
+        setProjects(populatedProjects);
+        setClients(fetchedClients);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -83,7 +109,7 @@ const Projects = () => {
       filtered = filtered.filter(
         (project) =>
           project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          project.client?.name.toLowerCase().includes(searchTerm.toLowerCase())
+          project.client?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -132,13 +158,29 @@ const Projects = () => {
       alert('Please login to edit projects');
       return;
     }
+    
+    console.log('Editing project:', project);
+    
+    // Get client ID - handle both populated and non-populated cases
+    let clientId = '';
+    if (project.client) {
+      // If client is an object (populated)
+      if (typeof project.client === 'object' && project.client._id) {
+        clientId = project.client._id;
+      }
+      // If client is already just an ID string
+      else if (typeof project.client === 'string') {
+        clientId = project.client;
+      }
+    }
+    
     setFormData({
-      name: project.name,
-      description: project.description,
-      client: project.client._id,
-      status: project.status,
-      progress: project.progress,
-      deadline: project.deadline.split('T')[0], // Format date for input
+      name: project.name || '',
+      description: project.description || '',
+      client: clientId,
+      status: project.status || 'Pending',
+      progress: project.progress || 0,
+      deadline: project.deadline ? project.deadline.split('T')[0] : '',
       tasks: project.tasks || [],
     });
     setSelectedProject(project);
@@ -198,9 +240,13 @@ const Projects = () => {
     }
 
     try {
+      console.log('Submitting form data:', formData);
+      
       let response;
       if (isEditMode) {
+        console.log('Updating project:', selectedProject._id);
         response = await projectAPI.update(selectedProject._id, formData);
+        console.log('Update response:', response);
       } else {
         response = await projectAPI.create(formData);
       }
@@ -208,10 +254,15 @@ const Projects = () => {
       if (response.success) {
         alert(isEditMode ? '✅ Project updated successfully!' : '✅ Project created successfully!');
         setIsFormModalOpen(false);
-        fetchData();
+        
+        // Refresh data to get updated project with new client info
+        await fetchData();
+      } else {
+        setFormError(response.message || 'Failed to save project');
       }
     } catch (error) {
       console.error('Error saving project:', error);
+      console.error('Error response:', error.response);
       setFormError(error.response?.data?.message || 'Failed to save project.');
     } finally {
       setIsSubmitting(false);
@@ -265,7 +316,7 @@ const Projects = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream pt-16 md:pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 animate-fadeIn">

@@ -118,13 +118,14 @@ const createProject = async (req, res) => {
 };
 
 /**
- * @desc    Update project (including status)
+ * @desc    Update project (including status and client)
  * @route   PUT /api/projects/:id
  * @access  Public (will be protected later - Admin only)
  */
 const updateProject = async (req, res) => {
   try {
-    const { name, description, status, progress, deadline, tasks } = req.body;
+    // ✅ FIXED: Added 'client' here!
+    const { name, description, client, status, progress, deadline, tasks } = req.body;
 
     // Find project
     let project = await Project.findById(req.params.id);
@@ -136,12 +137,24 @@ const updateProject = async (req, res) => {
       });
     }
 
-    // Update project
+    // ✅ OPTIONAL: Validate client exists if client is being updated
+    if (client && client !== project.client.toString()) {
+      const clientExists = await Client.findById(client);
+      if (!clientExists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client not found',
+        });
+      }
+    }
+
+    // ✅ FIXED: Added 'client' in the update object!
     project = await Project.findByIdAndUpdate(
       req.params.id,
       {
         name,
         description,
+        client,     // ← THIS WAS MISSING!
         status,
         progress,
         deadline,
