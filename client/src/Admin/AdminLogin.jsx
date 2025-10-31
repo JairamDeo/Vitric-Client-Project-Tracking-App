@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
 
@@ -9,6 +9,7 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -22,8 +23,13 @@ const AdminLogin = () => {
       const result = await login(emailOrMobile, password);
       
       if (result.success) {
-        // Redirect to dashboard on successful login
-        navigate('/');
+        // Show success modal
+        setShowSuccessModal(true);
+        
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
       } else {
         setError(result.message || 'Invalid email or password');
       }
@@ -35,7 +41,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4 pt-20 md:pt-24">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         
         {/* Left Side - Company Info */}
@@ -144,6 +150,58 @@ const AdminLogin = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Modal - Brand Colors */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-darkBrown bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-cream rounded-2xl shadow-2xl border-2 border-maroon overflow-hidden max-w-md w-full animate-zoomIn">
+            {/* Header with gradient */}
+            <div className="bg-gradient-to-r from-maroon to-darkMaroon p-6 text-center">
+              <div className="w-20 h-20 bg-cream rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg animate-bounce">
+                <CheckCircle className="w-12 h-12 text-maroon" />
+              </div>
+              <h2 className="text-2xl font-bold text-cream mb-1">
+                Login Successful!
+              </h2>
+              <p className="text-cream text-sm opacity-90">
+                Welcome back, Admin! 🎉
+              </p>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 text-center">
+              <p className="text-darkBrown mb-4">
+                You've been successfully authenticated.
+              </p>
+              
+              {/* Loading Indicator */}
+              <div className="flex items-center justify-center gap-2 text-sm text-maroon">
+                <div className="w-4 h-4 border-2 border-maroon border-t-transparent rounded-full animate-spin" />
+                <span className="font-medium">Redirecting to dashboard...</span>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-4 w-full bg-lightPink rounded-full h-2 overflow-hidden">
+                <div className="bg-maroon h-full rounded-full animate-[slideRight_2s_ease-in-out]" 
+                     style={{ width: '100%', animation: 'slideRight 2s ease-in-out' }}>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add custom animation for progress bar */}
+      <style jsx>{`
+        @keyframes slideRight {
+          from {
+            width: 0%;
+          }
+          to {
+            width: 100%;
+          }
+        }
+      `}</style>
     </div>
   );
 };
