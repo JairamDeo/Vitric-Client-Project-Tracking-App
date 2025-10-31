@@ -6,8 +6,67 @@ A full-stack web application for managing clients and their project tasks. Admin
 
 ---
 
+## 🔑 Admin Login Credentials (IMPORTANT)
+
+**To test the application and add clients/projects, you need to login as admin:**
+
+- **Email:** `victriccpt@gmail.com`
+- **Password:** `victric1234`
+
+**Steps to Login:**
+1. Visit the [Live Demo](https://vitric-client-project-tracking-app.vercel.app/) or run the application locally
+2. Click on "Admin" button in the navbar (or navigate to `/admin-login`)
+3. Enter the credentials above
+4. Once logged in, you'll be able to:
+   - Add new clients
+   - Create new projects
+   - Edit/Delete clients and projects
+   - Update project status and progress
+
+**⚠️ Note:** Without admin login, you can only view clients and projects, but cannot add, edit, or delete them.
+
+---
+
+## 🗄️ MongoDB Atlas Database Access
+
+If you want to check the database directly, you can access it using the following methods:
+
+### Option 1: MongoDB Atlas Web Interface
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Login with the account credentials (contact project owner for access)
+3. Navigate to your cluster and browse the database
+
+### Option 2: MongoDB Compass (Recommended for Local Access)
+1. Download [MongoDB Compass](https://www.mongodb.com/try/download/compass)
+2. Use the connection string from the `.env` file:
+   ```
+   mongodb+srv://VitricCPT:VitricCPT123@cluster0.dov59b8.mongodb.net/client-tracker?appName=Cluster0
+   ```
+3. Connect to view collections: `clients`, `projects`, `admins`
+
+### Option 3: MongoDB Shell (mongosh)
+```bash
+mongosh "mongodb+srv://VitricCPT:VitricCPT123@cluster0.dov59b8.mongodb.net/client-tracker?appName=Cluster0"
+```
+
+**Database Collections:**
+- **clients** - Stores all client information
+- **projects** - Stores all project data with client references
+- **admins** - Stores admin user accounts
+
+**Connection String (from .env):**
+```
+mongodb+srv://VitricCPT:VitricCPT123@cluster0.dov59b8.mongodb.net/client-tracker?appName=Cluster0
+```
+
+**Note:** The database is configured to allow connections from anywhere (`0.0.0.0/0` IP whitelist) for testing purposes.
+
+---
+
 ## 📋 Table of Contents
 
+- [Admin Login Credentials](#-admin-login-credentials-important)
+- [MongoDB Atlas Database Access](#️-mongodb-atlas-database-access)
 - [Technology Stack](#technology-stack)
 - [Prerequisites](#prerequisites)
 - [Project Structure](#project-structure)
