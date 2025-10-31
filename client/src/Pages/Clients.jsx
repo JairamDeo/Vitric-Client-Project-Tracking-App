@@ -258,7 +258,7 @@ const Clients = () => {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-darkBrown w-5 h-5" />
             <input
               type="text"
-              placeholder="Search clients..."
+              placeholder="Search clients by their name, mobile, email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border-2 border-maroon-20 rounded-xl focus:outline-none focus:border-maroon transition-all duration-300"

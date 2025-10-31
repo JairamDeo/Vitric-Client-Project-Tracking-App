@@ -114,10 +114,14 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream pt-16 md:pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Page Header */}
-        <div className="mb-8 animate-fadeIn">
+        <div 
+          className="mb-8"
+          data-aos="fade-down"
+          data-aos-duration="800"
+        >
           <h1 className="text-4xl font-bold text-darkBrown mb-2">Dashboard</h1>
           <p className="text-darkBrown text-lg">
             Welcome back! Here's your project overview.
@@ -126,7 +130,11 @@ const Dashboard = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl animate-slideUp">
+          <div 
+            className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl"
+            data-aos="fade-up"
+            data-aos-duration="600"
+          >
             <p className="text-red-700 font-medium">{error}</p>
             <button
               onClick={fetchDashboardData}
@@ -138,10 +146,15 @@ const Dashboard = () => {
         )}
 
         {/* Statistics Cards */}
-        <Suspense fallback={<div className="text-center">Loading stats...</div>}>
+        <Suspense fallback={<div className="text-center">.</div>}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {statCards.map((stat, index) => (
-              <div key={stat.id} style={{ animationDelay: `${index * 100}ms` }}>
+              <div 
+                key={stat.id} 
+                data-aos="zoom-in"
+                data-aos-duration="800"
+                data-aos-delay={index * 150}
+              >
                 <StatCard
                   title={stat.title}
                   value={stat.value}
@@ -156,8 +169,8 @@ const Dashboard = () => {
         </Suspense>
 
         {/* Recent Projects Section */}
-        <Suspense fallback={<div className="text-center">Loading projects...</div>}>
-          <div className="animate-fadeIn">
+        <Suspense fallback={<div className="text-center"></div>}>
+          <div >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-darkBrown">Recent Projects</h2>
               <button
@@ -169,7 +182,11 @@ const Dashboard = () => {
             </div>
 
             {recentProjects.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-custom p-12 text-center border border-maroon-20">
+              <div 
+                className="bg-white rounded-xl shadow-custom p-12 text-center border border-maroon-20"
+                data-aos="fade-down"
+                data-aos-duration="1000"
+              >
                 <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-darkBrown mb-2">
                   No Projects Yet
@@ -183,7 +200,6 @@ const Dashboard = () => {
                 {recentProjects.map((project, index) => (
                   <div
                     key={project.id}
-                    style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <ProjectCard
                       projectName={project.projectName}

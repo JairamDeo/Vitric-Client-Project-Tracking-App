@@ -10,7 +10,7 @@ A full-stack web application for managing clients and their project tasks. Admin
 
 **To test the application and add clients/projects, you need to login as admin:**
 
-- **Email:** `victriccpt@gmail.com`
+- **Email:** `vitriccpt@gmail.com`
 - **Password:** `victric1234`
 
 **Steps to Login:**

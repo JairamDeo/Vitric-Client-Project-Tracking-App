@@ -1,16 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const ProjectCard = React.memo(({ projectName, clientName, progress, status }) => {
   const [animatedProgress, setAnimatedProgress] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const cardRef = useRef(null);
 
-  // Animate progress bar on mount
+  // Intersection Observer - Works on ALL devices including mobile
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimatedProgress(progress);
-    }, 100);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Trigger animation when card enters viewport
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          // Small delay before starting animation
+          setTimeout(() => {
+            setAnimatedProgress(progress);
+          }, 200);
+        }
+      },
+      {
+        threshold: 0.2, // Trigger when 20% of card is visible
+        rootMargin: '0px 0px -50px 0px', // Start slightly before fully visible
+      }
+    );
 
-    return () => clearTimeout(timer);
-  }, [progress]);
+    const currentCard = cardRef.current;
+    if (currentCard) {
+      observer.observe(currentCard);
+    }
+
+    return () => {
+      if (currentCard) {
+        observer.unobserve(currentCard);
+      }
+    };
+  }, [progress, hasAnimated]);
 
   // Determine status badge color
   const getStatusColor = (status) => {
@@ -34,7 +58,10 @@ const ProjectCard = React.memo(({ projectName, clientName, progress, status }) =
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-custom p-6 hover:shadow-lg transition-all duration-300 border border-maroon-20 animate-slideUp">
+    <div 
+      ref={cardRef}
+      className="bg-white rounded-xl shadow-custom p-6 hover:shadow-lg transition-all duration-300 border border-maroon-20 animate-slideUp"
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <h3 className="text-lg font-bold text-darkBrown mb-1">{projectName}</h3>
@@ -45,13 +72,18 @@ const ProjectCard = React.memo(({ projectName, clientName, progress, status }) =
         </span>
       </div>
       
-      {/* Progress Bar with Animation */}
+      {/* Progress Bar - Animated on Mobile & Desktop */}
       <div className="mb-2">
         <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
           <div 
-            className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${getProgressColor(progress)}`}
-            style={{ width: `${animatedProgress}%` }}
-          ></div>
+            className={`h-2.5 rounded-full ${getProgressColor(progress)}`}
+            style={{ 
+              width: `${animatedProgress}%`,
+              transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
+              willChange: 'width',
+              transform: 'translateZ(0)', // Force GPU acceleration
+            }}
+          />
         </div>
       </div>
       <p className="text-sm text-darkBrown font-medium">{progress}% Complete</p>
