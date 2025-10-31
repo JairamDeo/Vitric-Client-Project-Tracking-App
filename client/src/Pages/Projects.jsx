@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { Search, Plus, X, Trash2 } from 'lucide-react';
+import { Search, Plus, X, Trash2, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import { projectAPI, clientAPI } from '../utils/apiService';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +20,15 @@ const Projects = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // Alert Modal State
+  const [alertModal, setAlertModal] = useState({
+    show: false,
+    type: 'success', // 'success', 'error', 'warning', 'confirm'
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
   const { isAuthenticated } = useAuth();
 
   // Form state with all required fields
@@ -37,6 +46,27 @@ const Projects = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tabs = ['All', 'In Progress', 'Completed', 'Pending'];
+
+  // Show Alert Modal Helper
+  const showAlert = (type, title, message, onConfirm = null) => {
+    setAlertModal({
+      show: true,
+      type,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
+  const closeAlert = () => {
+    setAlertModal({
+      show: false,
+      type: 'success',
+      title: '',
+      message: '',
+      onConfirm: null,
+    });
+  };
 
   useEffect(() => {
     fetchData();
@@ -125,17 +155,17 @@ const Projects = () => {
       }
     } catch (error) {
       console.error('Error fetching project details:', error);
-      alert('Failed to load project details');
+      showAlert('error', 'Error', 'Failed to load project details');
     }
   };
 
   const handleAddProject = () => {
     if (!isAuthenticated) {
-      alert('Please login to add projects');
+      showAlert('warning', 'Authentication Required', 'Please login to add projects');
       return;
     }
     if (clients.length === 0) {
-      alert('Please add at least one client first!');
+      showAlert('warning', 'No Clients Available', 'Please add at least one client first!');
       return;
     }
     setFormData({
@@ -155,11 +185,9 @@ const Projects = () => {
 
   const handleEditProject = (project) => {
     if (!isAuthenticated) {
-      alert('Please login to edit projects');
+      showAlert('warning', 'Authentication Required', 'Please login to edit projects');
       return;
     }
-    
-    console.log('Editing project:', project);
     
     // Get client ID - handle both populated and non-populated cases
     let clientId = '';
@@ -192,24 +220,27 @@ const Projects = () => {
 
   const handleDeleteProject = async (projectId) => {
     if (!isAuthenticated) {
-      alert('Please login to delete projects');
+      showAlert('warning', 'Authentication Required', 'Please login to delete projects');
       return;
     }
 
-    if (!window.confirm('⚠️ Are you sure you want to delete this project?')) {
-      return;
-    }
-
-    try {
-      const response = await projectAPI.delete(projectId);
-      if (response.success) {
-        setProjects(projects.filter(p => p._id !== projectId));
-        alert('✅ Project deleted successfully!');
+    showAlert(
+      'confirm',
+      'Delete Project',
+      'Are you sure you want to delete this project? This action cannot be undone.',
+      async () => {
+        try {
+          const response = await projectAPI.delete(projectId);
+          if (response.success) {
+            setProjects(projects.filter(p => p._id !== projectId));
+            showAlert('success', 'Success!', 'Project deleted successfully!');
+          }
+        } catch (error) {
+          console.error('Error deleting project:', error);
+          showAlert('error', 'Delete Failed', error.response?.data?.message || 'Failed to delete project.');
+        }
       }
-    } catch (error) {
-      console.error('Error deleting project:', error);
-      alert(error.response?.data?.message || '❌ Failed to delete project.');
-    }
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -240,29 +271,26 @@ const Projects = () => {
     }
 
     try {
-      console.log('Submitting form data:', formData);
-      
       let response;
       if (isEditMode) {
-        console.log('Updating project:', selectedProject._id);
         response = await projectAPI.update(selectedProject._id, formData);
-        console.log('Update response:', response);
       } else {
         response = await projectAPI.create(formData);
       }
 
       if (response.success) {
-        alert(isEditMode ? '✅ Project updated successfully!' : '✅ Project created successfully!');
         setIsFormModalOpen(false);
-        
-        // Refresh data to get updated project with new client info
         await fetchData();
+        showAlert(
+          'success',
+          'Success!',
+          isEditMode ? 'Project updated successfully!' : 'Project created successfully!'
+        );
       } else {
         setFormError(response.message || 'Failed to save project');
       }
     } catch (error) {
       console.error('Error saving project:', error);
-      console.error('Error response:', error.response);
       setFormError(error.response?.data?.message || 'Failed to save project.');
     } finally {
       setIsSubmitting(false);
@@ -271,10 +299,30 @@ const Projects = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    
+    // Handle status change with automatic progress
+    if (name === 'status') {
+      let newProgress = formData.progress;
+      
+      if (value === 'Completed') {
+        newProgress = 100;
+      } else if (value === 'Pending') {
+        newProgress = 0;
+      }
+      // For 'In Progress', keep current progress (user can adjust manually)
+      
+      setFormData({
+        ...formData,
+        status: value,
+        progress: newProgress,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
+    
     setFormError('');
   };
 
@@ -522,6 +570,11 @@ const Projects = () => {
                       <option value="In Progress">In Progress</option>
                       <option value="Completed">Completed</option>
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formData.status === 'Completed' && ' Progress auto-set to 100%'}
+                      {formData.status === 'Pending' && ' Progress auto-set to 0%'}
+                      {formData.status === 'In Progress' && ' Adjust progress manually'}
+                    </p>
                   </div>
 
                   {/* Progress */}
@@ -537,9 +590,14 @@ const Projects = () => {
                       min="0"
                       max="100"
                       step="5"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || formData.status === 'Completed' || formData.status === 'Pending'}
                       className="w-full h-10"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {(formData.status === 'Completed' || formData.status === 'Pending') 
+                        ? '🔒 Auto-controlled by status' 
+                        : '🎚️ Drag to adjust'}
+                    </p>
                   </div>
                 </div>
 
@@ -637,6 +695,62 @@ const Projects = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Alert Modal */}
+        {alertModal.show && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4 animate-fadeIn">
+            <div className="bg-cream rounded-2xl shadow-2xl border-2 border-maroon overflow-hidden max-w-md w-full animate-zoomIn">
+              {/* Header with Icon */}
+              <div className={`p-6 text-center ${
+                alertModal.type === 'success' ? 'bg-gradient-to-r from-maroon to-darkMaroon' :
+                alertModal.type === 'error' ? 'bg-gradient-to-r from-red-600 to-red-800' :
+                alertModal.type === 'warning' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                'bg-gradient-to-r from-maroon to-darkMaroon'
+              }`}>
+                <div className="w-16 h-16 bg-cream rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+                  {alertModal.type === 'success' && <CheckCircle className="w-10 h-10 text-maroon" />}
+                  {alertModal.type === 'error' && <XCircle className="w-10 h-10 text-red-600" />}
+                  {alertModal.type === 'warning' && <AlertTriangle className="w-10 h-10 text-yellow-600" />}
+                  {alertModal.type === 'confirm' && <AlertTriangle className="w-10 h-10 text-maroon" />}
+                </div>
+                <h3 className="text-2xl font-bold text-cream">{alertModal.title}</h3>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 text-center">
+                <p className="text-darkBrown mb-6">{alertModal.message}</p>
+
+                {/* Buttons */}
+                {alertModal.type === 'confirm' ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={closeAlert}
+                      className="flex-1 px-6 py-3 border-2 border-maroon-20 text-darkBrown rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (alertModal.onConfirm) alertModal.onConfirm();
+                        closeAlert();
+                      }}
+                      className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all duration-300 transform hover:scale-105 shadow-md"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={closeAlert}
+                    className="w-full px-6 py-3 bg-maroon text-cream rounded-lg font-semibold hover:bg-darkMaroon transition-all duration-300 transform hover:scale-105 shadow-md"
+                  >
+                    OK
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
