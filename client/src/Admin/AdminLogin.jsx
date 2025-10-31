@@ -46,8 +46,8 @@ const AdminLogin = () => {
         {/* Left Side - Company Info */}
         <div className="hidden lg:flex flex-col justify-center space-y-6 animate-fadeIn">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center shadow-lg p-3">
-              <img src="../../public/assets/logo.svg"  alt="Company Logo" className="w-full h-full object-contain" />
+            <div className="w-[160px] h-[80px] rounded-xl flex items-center justify-center p-3">
+              <img src="../../assets/logo.svg"  alt="Company Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-maroon">Client Project Tracker</h1>
@@ -68,8 +68,8 @@ const AdminLogin = () => {
         {/* Right Side - Login Form */}
         <div className="w-full max-w-md mx-auto animate-slideUp">
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg p-2 mb-3">
-              <img src="../../public/assets/logo.svg" alt="Company Logo" className="w-full h-full object-contain" />
+            <div className="w-[220px] h-[100px] rounded-xl flex items-center justify-center  p-2">
+              <img src="../../assets/logo.svg" alt="Company Logo" className="w-full h-full bg-cover" />
             </div>
             <h1 className="text-2xl font-bold text-maroon text-center">Client Project Tracker</h1>
             <p className="text-darkBrown text-sm">Admin Portal</p>

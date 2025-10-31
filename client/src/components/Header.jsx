@@ -54,7 +54,7 @@ const Header = () => {
 
           {/* Logo */}
           <div className="flex items-center">
-            <div className="w-[100px] md:w-[150px] h-10 md:h-14 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 p-2">
+            <div className="w-[100px] md:w-[220px] h-10 md:h-16 rounded-lg flex items-center justify-center duration-300 p-2">
               <img 
                 src="assets/logo.svg" 
                 alt="Logo" 
