@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Users, Briefcase, Lock } from 'lucide-react';
-import logo from '../assets/logo.svg';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, LayoutDashboard, Users, Briefcase, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import logo from '../assets/logo.png';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, admin } = useAuth();
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Clients', path: '/client', icon: Users },
     { name: 'Projects', path: '/project', icon: Briefcase },
-    { name: 'Admin', path: '/admin-login', icon: Lock }
   ];
 
   const toggleMobileMenu = () => {
@@ -19,25 +21,34 @@ const Header = () => {
   };
 
   const handleNavClick = () => {
-    setIsMobileMenuOpen(false); // Close menu on mobile after clicking
+    setIsMobileMenuOpen(false);
   };
 
-  // Close mobile menu on route change
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+    navigate('/admin-login');
+  };
+
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  // Check if the current path matches the nav item path
   const isActive = (path) => {
     return location.pathname === path;
   };
 
+  // Don't show header on login page
+  if (location.pathname === '/admin-login') {
+    return null;
+  }
+
   return (
-    <header className="bg-cream border-b-2 border-maroon-20 shadow-custom fixed top-0 left-0 right-0 z-50 py-8 sm:py-4">
+    <header className="bg-cream border-b-2 border-maroon-20 shadow-custom fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           
-          {/* Logo - Left Side with 150px width */}
+          {/* Logo */}
           <div className="flex items-center">
             <div className="w-[150px] h-12 md:h-14 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 p-2">
               <img src={logo} alt="Logo" className="w-full h-full object-contain" />
@@ -51,14 +62,14 @@ const Header = () => {
             </h1>
           </div>
 
-          {/* Mobile - Center Title (Full Name) */}
+          {/* Mobile - Center Title */}
           <div className="md:hidden flex-1 flex justify-center px-2">
             <h1 className="text-xs font-bold text-maroon tracking-wide text-center leading-tight">
               Client Project Tracking
             </h1>
           </div>
 
-          {/* Desktop Navigation - Right Side */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
             {navItems.map((item) => (
               <Link
@@ -73,6 +84,17 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Logout Button - Desktop */}
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="px-4 lg:px-6 py-2 rounded-lg font-medium text-sm lg:text-base transition-all duration-300 transform hover:scale-105 text-red-600 hover:bg-red-50 flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -96,7 +118,15 @@ const Header = () => {
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         } border-l-2 border-maroon-20`}
       >
-        {/* Mobile Navigation with Icons (No Logo/Title) */}
+        {/* Admin Info - Mobile */}
+        {isAuthenticated && admin && (
+          <div className="p-4 border-b-2 border-maroon-20 bg-white">
+            <p className="text-xs text-gray-500">Logged in as</p>
+            <p className="text-sm font-semibold text-darkBrown truncate">{admin.email}</p>
+          </div>
+        )}
+
+        {/* Mobile Navigation */}
         <nav className="flex flex-col p-6 space-y-3">
           {navItems.map((item, index) => {
             const IconComponent = item.icon;
@@ -119,6 +149,17 @@ const Header = () => {
               </Link>
             );
           })}
+
+          {/* Logout Button - Mobile */}
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="px-6 py-3 rounded-lg font-medium text-base transition-all duration-300 text-left transform hover:scale-105 flex items-center gap-3 text-red-600 hover:bg-red-50 border-t-2 border-maroon-20 mt-4 pt-6"
+            >
+              <LogOut className="w-5 h-5" />
+              Logout
+            </button>
+          )}
         </nav>
       </div>
 

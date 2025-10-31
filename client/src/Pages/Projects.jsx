@@ -1,177 +1,259 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Search, Plus, X, Trash2 } from 'lucide-react';
+import { projectAPI, clientAPI } from '../utils/apiService';
+import { useAuth } from '../context/AuthContext';
 
-// Lazy load components
 const ProjectListCard = lazy(() => import('../components/ProjectListCard'));
 const ProjectDetailsModal = lazy(() => import('../components/ProjectDetailsModal'));
 const LoadingBar = lazy(() => import('../components/LoadingBar'));
 
 const Projects = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [selectedProject, setSelectedProject] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [activeTab, setActiveTab] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  // Filter options
-  const filters = ['All', 'In Progress', 'Completed', 'Pending'];
+  const { isAuthenticated } = useAuth();
 
-  // Simulate data loading
+  // Form state with all required fields
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    client: '',
+    status: 'Pending',
+    progress: 0,
+    deadline: '',
+    tasks: [],
+  });
+  const [currentTask, setCurrentTask] = useState('');
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const tabs = ['All', 'In Progress', 'Completed', 'Pending'];
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // Sample projects data
-      setProjects([
-        {
-          id: 1,
-          name: 'E-commerce Redesign',
-          client: 'TechCorp Inc.',
-          clientEmail: 'contact@techcorp.com',
-          clientPhone: '+1 234 567 890',
-          description: 'Complete redesign of the e-commerce platform with modern UI/UX, improved performance, and mobile responsiveness.',
-          deadline: '11/15/2025',
-          progress: 65,
-          status: 'In Progress',
-          tasks: [
-            { name: 'Design mockups', completed: true },
-            { name: 'Frontend development', completed: true },
-            { name: 'Backend integration', completed: false },
-            { name: 'Testing', completed: false }
-          ]
-        },
-        {
-          id: 2,
-          name: 'Mobile App Development',
-          client: 'StartUp XYZ',
-          clientEmail: 'hello@startupxyz.com',
-          clientPhone: '+1 234 567 891',
-          description: 'Native iOS and Android mobile application for customer engagement and product showcase.',
-          deadline: '12/1/2025',
-          progress: 40,
-          status: 'In Progress',
-          tasks: [
-            { name: 'Requirements gathering', completed: true },
-            { name: 'UI/UX design', completed: true },
-            { name: 'Development', completed: false },
-            { name: 'App store submission', completed: false }
-          ]
-        },
-        {
-          id: 3,
-          name: 'Website Migration',
-          client: 'Global Solutions',
-          clientEmail: 'info@globalsolutions.com',
-          clientPhone: '+1 234 567 892',
-          description: 'Migrate existing website to new hosting platform with improved security and performance.',
-          deadline: '10/30/2025',
-          progress: 100,
-          status: 'Completed',
-          tasks: [
-            { name: 'Backup existing site', completed: true },
-            { name: 'Set up new hosting', completed: true },
-            { name: 'Migration', completed: true },
-            { name: 'Testing & DNS update', completed: true }
-          ]
-        },
-        {
-          id: 4,
-          name: 'Brand Identity',
-          client: 'Creative Agency',
-          clientEmail: 'contact@creativeagency.com',
-          clientPhone: '+1 234 567 893',
-          description: 'Develop comprehensive brand identity including logo, color palette, typography, and brand guidelines.',
-          deadline: '11/30/2025',
-          progress: 15,
-          status: 'Pending',
-          tasks: [
-            { name: 'Initial consultation', completed: true },
-            { name: 'Concept development', completed: false },
-            { name: 'Design refinement', completed: false },
-            { name: 'Final delivery', completed: false }
-          ]
-        },
-        {
-          id: 5,
-          name: 'CRM Integration',
-          client: 'Digital Nexus',
-          clientEmail: 'info@digitalnexus.com',
-          clientPhone: '+1 234 567 894',
-          description: 'Integrate Salesforce CRM with existing business systems for streamlined operations.',
-          deadline: '12/15/2025',
-          progress: 10,
-          status: 'Pending',
-          tasks: [
-            { name: 'System analysis', completed: true },
-            { name: 'Integration planning', completed: false },
-            { name: 'Implementation', completed: false },
-            { name: 'Training', completed: false }
-          ]
-        },
-        {
-          id: 6,
-          name: 'SEO Optimization',
-          client: 'TechCorp Inc.',
-          clientEmail: 'contact@techcorp.com',
-          clientPhone: '+1 234 567 890',
-          description: 'Comprehensive SEO audit and optimization to improve search engine rankings and organic traffic.',
-          deadline: '11/20/2025',
-          progress: 55,
-          status: 'In Progress',
-          tasks: [
-            { name: 'SEO audit', completed: true },
-            { name: 'Keyword research', completed: true },
-            { name: 'On-page optimization', completed: false },
-            { name: 'Performance tracking', completed: false }
-          ]
-        },
-        {
-          id: 7,
-          name: 'API Development',
-          client: 'Global Solutions',
-          clientEmail: 'info@globalsolutions.com',
-          clientPhone: '+1 234 567 892',
-          description: 'RESTful API development for third-party integrations and mobile app backend.',
-          deadline: '10/25/2025',
-          progress: 100,
-          status: 'Completed',
-          tasks: [
-            { name: 'API design', completed: true },
-            { name: 'Development', completed: true },
-            { name: 'Documentation', completed: true },
-            { name: 'Testing', completed: true }
-          ]
-        }
-      ]);
-      setIsLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
+    fetchData();
   }, []);
 
-  // Filter projects based on active filter
-  const filteredProjects = projects.filter(project => {
-    if (activeFilter === 'All') return true;
-    return project.status === activeFilter;
-  });
+  useEffect(() => {
+    filterProjects();
+  }, [projects, activeTab, searchTerm]);
 
-  const handleViewDetails = (project) => {
-    setSelectedProject(project);
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      
+      const [projectsResponse, clientsResponse] = await Promise.all([
+        projectAPI.getAll(),
+        clientAPI.getAll(),
+      ]);
+
+      if (projectsResponse.success) {
+        setProjects(projectsResponse.data);
+      }
+      if (clientsResponse.success) {
+        setClients(clientsResponse.data);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleCloseModal = () => {
-    setSelectedProject(null);
+  const filterProjects = () => {
+    let filtered = projects;
+
+    // Filter by status tab
+    if (activeTab !== 'All') {
+      filtered = filtered.filter((project) => project.status === activeTab);
+    }
+
+    // Filter by search term
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(
+        (project) =>
+          project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          project.client?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredProjects(filtered);
   };
 
-  const handleNewProject = () => {
-    alert('New Project functionality - To be implemented');
+  const handleViewDetails = async (project) => {
+    try {
+      const response = await projectAPI.getById(project._id);
+      if (response.success) {
+        setSelectedProject(response.data);
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+      console.error('Error fetching project details:', error);
+      alert('Failed to load project details');
+    }
+  };
+
+  const handleAddProject = () => {
+    if (!isAuthenticated) {
+      alert('Please login to add projects');
+      return;
+    }
+    if (clients.length === 0) {
+      alert('Please add at least one client first!');
+      return;
+    }
+    setFormData({
+      name: '',
+      description: '',
+      client: '',
+      status: 'Pending',
+      progress: 0,
+      deadline: '',
+      tasks: [],
+    });
+    setCurrentTask('');
+    setFormError('');
+    setIsEditMode(false);
+    setIsFormModalOpen(true);
   };
 
   const handleEditProject = (project) => {
-    alert(`Edit Project: ${project.name} - To be implemented`);
-    setSelectedProject(null);
+    if (!isAuthenticated) {
+      alert('Please login to edit projects');
+      return;
+    }
+    setFormData({
+      name: project.name,
+      description: project.description,
+      client: project.client._id,
+      status: project.status,
+      progress: project.progress,
+      deadline: project.deadline.split('T')[0], // Format date for input
+      tasks: project.tasks || [],
+    });
+    setSelectedProject(project);
+    setCurrentTask('');
+    setFormError('');
+    setIsEditMode(true);
+    setIsFormModalOpen(true);
   };
 
-  const handleDeleteProject = (projectId) => {
-    setProjects(projects.filter(p => p.id !== projectId));
-    alert('Project deleted successfully!');
+  const handleDeleteProject = async (projectId) => {
+    if (!isAuthenticated) {
+      alert('Please login to delete projects');
+      return;
+    }
+
+    if (!window.confirm('⚠️ Are you sure you want to delete this project?')) {
+      return;
+    }
+
+    try {
+      const response = await projectAPI.delete(projectId);
+      if (response.success) {
+        setProjects(projects.filter(p => p._id !== projectId));
+        alert('✅ Project deleted successfully!');
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert(error.response?.data?.message || '❌ Failed to delete project.');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormError('');
+
+    // Validation
+    if (!formData.name.trim()) {
+      setFormError('Project name is required');
+      setIsSubmitting(false);
+      return;
+    }
+    if (!formData.description.trim()) {
+      setFormError('Project description is required');
+      setIsSubmitting(false);
+      return;
+    }
+    if (!formData.client) {
+      setFormError('Please select a client');
+      setIsSubmitting(false);
+      return;
+    }
+    if (!formData.deadline) {
+      setFormError('Deadline is required');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      let response;
+      if (isEditMode) {
+        response = await projectAPI.update(selectedProject._id, formData);
+      } else {
+        response = await projectAPI.create(formData);
+      }
+
+      if (response.success) {
+        alert(isEditMode ? '✅ Project updated successfully!' : '✅ Project created successfully!');
+        setIsFormModalOpen(false);
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Error saving project:', error);
+      setFormError(error.response?.data?.message || 'Failed to save project.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    setFormError('');
+  };
+
+  const handleAddTask = () => {
+    if (!currentTask.trim()) return;
+    
+    setFormData({
+      ...formData,
+      tasks: [
+        ...formData.tasks,
+        { name: currentTask, completed: false }
+      ],
+    });
+    setCurrentTask('');
+  };
+
+  const handleRemoveTask = (index) => {
+    setFormData({
+      ...formData,
+      tasks: formData.tasks.filter((_, i) => i !== index),
+    });
+  };
+
+  const handleToggleTask = (index) => {
+    const newTasks = [...formData.tasks];
+    newTasks[index].completed = !newTasks[index].completed;
+    setFormData({
+      ...formData,
+      tasks: newTasks,
+    });
   };
 
   if (isLoading) {
@@ -185,75 +267,327 @@ const Projects = () => {
   return (
     <div className="min-h-screen bg-cream">
       <div className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4 animate-fadeIn">
-          <div>
-            <h1 className="text-4xl font-bold text-darkBrown mb-2">Projects</h1>
-            <p className="text-darkBrown text-lg">Track and manage all your projects</p>
+        {/* Header */}
+        <div className="mb-8 animate-fadeIn">
+          <h1 className="text-4xl font-bold text-darkBrown mb-2">Projects</h1>
+          <p className="text-darkBrown text-lg">Track and manage all your projects</p>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+            <p className="text-red-700 font-medium">{error}</p>
+            <button
+              onClick={fetchData}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+            >
+              Try again
+            </button>
           </div>
-          <button
-            onClick={handleNewProject}
-            className="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-md w-fit"
-          >
-            <Plus className="w-5 h-5" />
-            New Project
-          </button>
+        )}
+
+        {/* Search and Add Section */}
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Search Bar */}
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-darkBrown w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border-2 border-maroon-20 rounded-xl focus:outline-none focus:border-maroon transition-all duration-300"
+            />
+          </div>
+
+          {/* Add Project Button - Only for logged-in admin */}
+          {isAuthenticated && (
+            <button
+              onClick={handleAddProject}
+              className="w-full md:w-auto bg-maroon text-cream px-6 py-3 rounded-xl font-semibold hover:bg-darkMaroon transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Add New Project
+            </button>
+          )}
         </div>
 
         {/* Filter Tabs */}
-        <div className="mb-8 animate-fadeIn">
-          <div className="flex flex-wrap gap-3">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
-                  activeFilter === filter
-                    ? 'bg-blue-500 text-white shadow-md'
-                    : 'bg-white text-darkBrown border-2 border-maroon-20 hover:bg-lightPink'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-300 ${
+                activeTab === tab
+                  ? 'bg-maroon text-cream shadow-md'
+                  : 'bg-white text-darkBrown hover:bg-lightPink'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
         {/* Projects Grid */}
-        <Suspense fallback={<div className="text-center">Loading projects...</div>}>
-          {filteredProjects.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-darkBrown text-xl">
-                No {activeFilter !== 'All' ? activeFilter.toLowerCase() : ''} projects found.
-              </p>
-            </div>
-          ) : (
+        {filteredProjects.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-custom p-12 text-center border border-maroon-20">
+            <h3 className="text-xl font-semibold text-darkBrown mb-2">
+              {searchTerm ? 'No projects found' : 'No projects yet'}
+            </h3>
+            <p className="text-gray-600">
+              {searchTerm ? 'Try a different search term' : 'Start by adding your first project!'}
+            </p>
+          </div>
+        ) : (
+          <Suspense fallback={<div>Loading projects...</div>}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredProjects.map((project, index) => (
-                <div
-                  key={project.id}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
+                <div key={project._id} style={{ animationDelay: `${index * 50}ms` }}>
                   <ProjectListCard
-                    project={project}
-                    onViewDetails={handleViewDetails}
+                    projectName={project.name}
+                    clientName={project.client?.name || 'Unknown Client'}
+                    status={project.status}
+                    progress={project.progress}
+                    deadline={project.deadline}
+                    onViewDetails={() => handleViewDetails(project)}
+                    onEdit={() => handleEditProject(project)}
+                    onDelete={() => handleDeleteProject(project._id)}
+                    isAdmin={isAuthenticated}
                   />
                 </div>
               ))}
             </div>
-          )}
-        </Suspense>
+          </Suspense>
+        )}
 
         {/* Project Details Modal */}
-        {selectedProject && (
+        {isModalOpen && selectedProject && (
           <Suspense fallback={null}>
             <ProjectDetailsModal
               project={selectedProject}
-              onClose={handleCloseModal}
-              onEdit={handleEditProject}
-              onDelete={handleDeleteProject}
+              onClose={() => setIsModalOpen(false)}
             />
           </Suspense>
+        )}
+
+        {/* Add/Edit Project Form Modal */}
+        {isFormModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-slideUp">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b-2 border-maroon-20 p-6 flex items-center justify-between z-10">
+                <h2 className="text-2xl font-bold text-darkBrown">
+                  {isEditMode ? 'Edit Project' : 'Add New Project'}
+                </h2>
+                <button
+                  onClick={() => setIsFormModalOpen(false)}
+                  className="text-gray-500 hover:text-maroon transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                {/* Error Message */}
+                {formError && (
+                  <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+                    <p className="text-red-700 text-sm font-medium">{formError}</p>
+                  </div>
+                )}
+
+                {/* Project Name */}
+                <div>
+                  <label className="block text-sm font-medium text-darkBrown mb-2">
+                    Project Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="E.g., Website Redesign"
+                    required
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300 disabled:bg-gray-100"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-darkBrown mb-2">
+                    Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Describe the project..."
+                    required
+                    rows={3}
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300 disabled:bg-gray-100 resize-none"
+                  />
+                </div>
+
+                {/* Client Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-darkBrown mb-2">
+                    Client <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="client"
+                    value={formData.client}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300 disabled:bg-gray-100"
+                  >
+                    <option value="">Select a client</option>
+                    {clients.map((client) => (
+                      <option key={client._id} value={client._id}>
+                        {client.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status and Progress Row */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Status */}
+                  <div>
+                    <label className="block text-sm font-medium text-darkBrown mb-2">
+                      Status
+                    </label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-3 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300 disabled:bg-gray-100"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+
+                  {/* Progress */}
+                  <div>
+                    <label className="block text-sm font-medium text-darkBrown mb-2">
+                      Progress: {formData.progress}%
+                    </label>
+                    <input
+                      type="range"
+                      name="progress"
+                      value={formData.progress}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="100"
+                      step="5"
+                      disabled={isSubmitting}
+                      className="w-full h-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Deadline */}
+                <div>
+                  <label className="block text-sm font-medium text-darkBrown mb-2">
+                    Deadline <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="deadline"
+                    value={formData.deadline}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300 disabled:bg-gray-100"
+                  />
+                </div>
+
+                {/* Tasks Section */}
+                <div>
+                  <label className="block text-sm font-medium text-darkBrown mb-2">
+                    Tasks (Optional)
+                  </label>
+                  
+                  {/* Add Task Input */}
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={currentTask}
+                      onChange={(e) => setCurrentTask(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTask())}
+                      placeholder="Enter task name"
+                      disabled={isSubmitting}
+                      className="flex-1 px-4 py-2 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddTask}
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-maroon text-cream rounded-lg hover:bg-darkMaroon transition-all duration-300"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Task List */}
+                  {formData.tasks.length > 0 && (
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {formData.tasks.map((task, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={task.completed}
+                            onChange={() => handleToggleTask(index)}
+                            disabled={isSubmitting}
+                            className="w-4 h-4"
+                          />
+                          <span className={`flex-1 text-sm ${task.completed ? 'line-through text-gray-500' : ''}`}>
+                            {task.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTask(index)}
+                            disabled={isSubmitting}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsFormModalOpen(false)}
+                    disabled={isSubmitting}
+                    className="flex-1 px-6 py-3 border-2 border-maroon-20 text-darkBrown rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 px-6 py-3 bg-maroon text-cream rounded-lg font-semibold hover:bg-darkMaroon transition-all duration-300 transform hover:scale-105 shadow-md disabled:opacity-50 disabled:transform-none"
+                  >
+                    {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Project' : 'Create Project')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </div>
     </div>

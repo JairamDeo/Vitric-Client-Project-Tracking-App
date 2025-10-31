@@ -1,83 +1,128 @@
-import React, { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
+import React from 'react';
+import { Calendar, Eye, Edit, Trash2 } from 'lucide-react';
 
-const ProjectListCard = React.memo(({ project, onViewDetails }) => {
-  const [animatedProgress, setAnimatedProgress] = useState(0);
-
-  // Animate progress bar on mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimatedProgress(project.progress);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [project.progress]);
-
-  // Determine status badge color
+const ProjectListCard = ({ 
+  projectName, 
+  clientName, 
+  status, 
+  progress = 0, 
+  deadline,
+  onViewDetails,
+  onEdit,
+  onDelete,
+  isAdmin = false
+}) => {
+  // Status badge colors
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'in progress':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'pending':
-        return 'bg-orange-100 text-orange-700 border-orange-200';
+    switch (status) {
+      case 'Completed':
+        return 'bg-green-500 text-white';
+      case 'In Progress':
+        return 'bg-blue-500 text-white';
+      case 'Pending':
+        return 'bg-yellow-500 text-white';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-gray-500 text-white';
     }
   };
 
-  // Determine progress bar color
+  // Progress bar color
   const getProgressColor = (progress) => {
-    if (progress === 100) return 'bg-green-500';
-    if (progress >= 40) return 'bg-blue-500';
-    return 'bg-orange-500';
+    if (progress >= 75) return 'bg-green-500';
+    if (progress >= 50) return 'bg-blue-500';
+    if (progress >= 25) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  // Format deadline
+  const formatDeadline = (deadline) => {
+    if (!deadline) return 'No deadline';
+    const date = new Date(deadline);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-custom p-6 hover:shadow-lg transition-all duration-300 border border-maroon-20 animate-fadeIn">
-      {/* Project Header */}
+    <div className="bg-white rounded-xl shadow-custom hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border-2 border-maroon-20 p-6 animate-slideUp">
+      {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-xl font-bold text-darkBrown">{project.name}</h3>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(project.status)}`}>
-              {project.status}
-            </span>
-          </div>
-          <p className="text-sm text-gray-600 mb-2">{project.client}</p>
-          <div className="flex items-center text-sm text-darkBrown">
-            <Clock className="w-4 h-4 mr-1 text-maroon" />
-            <span>Deadline: {project.deadline}</span>
-          </div>
+          <h3 className="text-xl font-bold text-darkBrown mb-1 line-clamp-2">
+            {projectName || 'Untitled Project'}
+          </h3>
+          <p className="text-sm text-gray-600 truncate">
+            {clientName || 'No client assigned'}
+          </p>
         </div>
+        
+        {/* Status Badge */}
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(status)} whitespace-nowrap ml-2`}>
+          {status || 'Pending'}
+        </span>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Section */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-darkBrown">Progress</span>
-          <span className="text-sm font-bold text-darkBrown">{project.progress}%</span>
+          <span className="text-sm font-bold text-maroon">{progress}%</span>
         </div>
+        
+        {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-          <div 
-            className={`h-2.5 rounded-full transition-all duration-1000 ease-out ${getProgressColor(project.progress)}`}
-            style={{ width: `${animatedProgress}%` }}
-          ></div>
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${getProgressColor(progress)}`}
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
 
-      {/* View Details Button */}
-      <button
-        onClick={() => onViewDetails(project)}
-        className="w-full py-3 px-4 border-2 border-blue-500 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-all duration-300 transform hover:scale-105"
-      >
-        View Details
-      </button>
+      {/* Deadline */}
+      <div className="flex items-center gap-2 text-darkBrown mb-4">
+        <Calendar className="w-4 h-4 text-maroon" />
+        <span className="text-sm">
+          Due: {formatDeadline(deadline)}
+        </span>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2 pt-4 border-t-2 border-maroon-20">
+        {/* View Details Button */}
+        <button
+          onClick={onViewDetails}
+          className="flex-1 px-4 py-2 bg-maroon text-cream rounded-lg font-medium text-sm hover:bg-darkMaroon transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center gap-2"
+        >
+          <Eye className="w-4 h-4" />
+          View Details
+        </button>
+
+        {/* Edit Button - Only for Admin */}
+        {isAdmin && onEdit && (
+          <button
+            onClick={onEdit}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium text-sm hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
+            title="Edit Project"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Delete Button - Only for Admin */}
+        {isAdmin && onDelete && (
+          <button
+            onClick={onDelete}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium text-sm hover:bg-red-600 transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
+            title="Delete Project"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
-});
+};
 
-ProjectListCard.displayName = 'ProjectListCard';
-
-export default ProjectListCard;
+export default React.memo(ProjectListCard);
