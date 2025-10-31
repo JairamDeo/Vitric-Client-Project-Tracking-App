@@ -10,6 +10,7 @@ const Footer = () => {
       { name: 'Dashboard', path: '/' },
       { name: 'Clients', path: '/client' },
       { name: 'Projects', path: '/project' },
+      { name: 'Admin Login', path: '/admin-login' },
     ],
     contact: [
       { icon: Mail, text: 'jairamdeo2002@gmail.com', href: 'mailto:jairamdeo2002@gmail.com' },

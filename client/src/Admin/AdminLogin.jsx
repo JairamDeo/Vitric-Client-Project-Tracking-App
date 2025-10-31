@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn, CheckCircle } from 'lucide-react';
+import { Mail, Lock, LogIn, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const AdminLogin = () => {
@@ -9,7 +9,8 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
+  const [showPassword, setShowPassword] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -17,14 +18,15 @@ const AdminLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+
     try {
-      const result = await login(emailOrMobile, password);
-      
+      const sanitizedPassword = password.replace(/\s+/g, '').trim();
+      const result = await login(emailOrMobile.trim(), sanitizedPassword);
+
       if (result.success) {
         // Show success modal
         setShowSuccessModal(true);
-        
+
         // Redirect to dashboard after 2 seconds
         setTimeout(() => {
           navigate('/');
@@ -42,12 +44,12 @@ const AdminLogin = () => {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4 pt-20 md:pt-24">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-        
+
         {/* Left Side - Company Info */}
         <div className="hidden lg:flex flex-col justify-center space-y-6 animate-fadeIn">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-[160px] h-[80px] rounded-xl flex items-center justify-center p-3">
-              <img src="../../assets/logo.svg"  alt="Company Logo" className="w-full h-full object-contain" />
+              <img src="../../assets/logo.svg" alt="Company Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-maroon">Client Project Tracker</h1>
@@ -90,7 +92,7 @@ const AdminLogin = () => {
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-darkBrown mb-2">
-                  Email or Mobile Number
+                  Email
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-maroon w-5 h-5" />
@@ -113,14 +115,31 @@ const AdminLogin = () => {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-maroon w-5 h-5" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onPaste={(e) => {
+                      e.preventDefault(); // stop browser from pasting raw text
+                      const pasted = e.clipboardData.getData('text').normalize().trim();
+                      setPassword(pasted);
+                    }}
                     placeholder="Enter your password"
                     required
                     disabled={isLoading}
-                    className="w-full pl-12 pr-4 py-3 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300 text-darkBrown placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="w-full pl-12 pr-12 py-3 border-2 border-maroon-20 rounded-lg focus:outline-none focus:border-maroon transition-all duration-300 text-darkBrown placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
+
+                  {/* Eye toggle button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                    disabled={isLoading}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded focus:outline-none focus:ring-2 focus:ring-maroon/30"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5 text-maroon" /> : <Eye className="w-5 h-5 text-maroon" />}
+                  </button>
                 </div>
               </div>
 
@@ -172,7 +191,7 @@ const AdminLogin = () => {
               <p className="text-darkBrown mb-4">
                 You've been successfully authenticated.
               </p>
-              
+
               {/* Loading Indicator */}
               <div className="flex items-center justify-center gap-2 text-sm text-maroon">
                 <div className="w-4 h-4 border-2 border-maroon border-t-transparent rounded-full animate-spin" />
@@ -181,8 +200,8 @@ const AdminLogin = () => {
 
               {/* Progress Bar */}
               <div className="mt-4 w-full bg-lightPink rounded-full h-2 overflow-hidden">
-                <div className="bg-maroon h-full rounded-full animate-[slideRight_2s_ease-in-out]" 
-                     style={{ width: '100%', animation: 'slideRight 2s ease-in-out' }}>
+                <div className="bg-maroon h-full rounded-full animate-[slideRight_2s_ease-in-out]"
+                  style={{ width: '100%', animation: 'slideRight 2s ease-in-out' }}>
                 </div>
               </div>
             </div>

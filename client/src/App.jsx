@@ -26,6 +26,8 @@ const Clients = lazy(() => import('./Pages/Clients'));
 const Projects = lazy(() => import('./Pages/Projects'));
 const AdminLogin = lazy(() => import('./Admin/AdminLogin'));
 
+import RedirectIfAuthenticated from './components/RedirectIfAuthenticated';
+
 function App() {
 
   return (
@@ -39,9 +41,16 @@ function App() {
               <Route exact path='/' element={<Dashboard />} />
               <Route exact path='/client' element={<Clients />} />
               <Route exact path='/project' element={<Projects />} />
-              <Route exact path='/admin-login' element={<AdminLogin />} />
+              <Route
+                path="/admin-login"
+                element={
+                  <RedirectIfAuthenticated>
+                    <AdminLogin />
+                  </RedirectIfAuthenticated>
+                }
+              />
             </Routes>
-            
+
           </Suspense>
         </div>
         <Footer />

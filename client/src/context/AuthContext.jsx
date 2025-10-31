@@ -1,10 +1,9 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { adminAPI } from '../utils/apiService';
 
-// Create Auth Context
 const AuthContext = createContext();
 
-// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -13,22 +12,20 @@ export const useAuth = () => {
   return context;
 };
 
-// Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is already logged in on mount
   useEffect(() => {
     checkAuth();
   }, []);
 
-  // Check authentication status
+  //  Check authentication using cookies
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const adminData = localStorage.getItem('adminData');
+      const token = Cookies.get('adminToken');
+      const adminData = Cookies.get('adminData');
 
       if (token && adminData) {
         setAdmin(JSON.parse(adminData));
@@ -42,25 +39,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login function
+  //  Login - save tokens to cookies instead of localStorage
   const login = async (email, password) => {
     try {
       const response = await adminAPI.login(email, password);
       
       if (response.success) {
         const { token, ...adminData } = response.data;
-        
-        // Save to localStorage
-        localStorage.setItem('adminToken', token);
-        localStorage.setItem('adminData', JSON.stringify(adminData));
-        
-        // Update state
+
+        // Store token & user data securely in cookies
+        Cookies.set('adminToken', token, {
+          expires: 1,          // 1 day expiry
+          secure: true,        // only sent over HTTPS
+          sameSite: 'Strict',  // prevent CSRF
+        });
+
+        Cookies.set('adminData', JSON.stringify(adminData), {
+          expires: 1,
+          secure: true,
+          sameSite: 'Strict',
+        });
+
         setAdmin(adminData);
         setIsAuthenticated(true);
-        
         return { success: true };
       }
-      
+
       return { success: false, message: response.message };
     } catch (error) {
       console.error('Login error:', error);
@@ -71,10 +75,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
+  //  Logout - clear cookies
   const logout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
+    Cookies.remove('adminToken');
+    Cookies.remove('adminData');
     setAdmin(null);
     setIsAuthenticated(false);
   };
