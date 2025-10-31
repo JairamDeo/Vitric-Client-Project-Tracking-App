@@ -69,7 +69,7 @@ const AdminLogin = () => {
         <div className="w-full max-w-md mx-auto animate-slideUp">
           <div className="lg:hidden flex flex-col items-center mb-8">
             <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg p-2 mb-3">
-              <img src={logo} alt="Company Logo" className="w-full h-full object-contain" />
+              <img src="../../public/assets/logo.svg" alt="Company Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-maroon text-center">Client Project Tracker</h1>
             <p className="text-darkBrown text-sm">Admin Portal</p>
