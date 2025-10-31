@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import logo from '../assets/logo.png';
 
 const AdminLogin = () => {
   const [emailOrMobile, setEmailOrMobile] = useState('');
@@ -48,7 +47,7 @@ const AdminLogin = () => {
         <div className="hidden lg:flex flex-col justify-center space-y-6 animate-fadeIn">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center shadow-lg p-3">
-              <img src={logo} alt="Company Logo" className="w-full h-full object-contain" />
+              <img src="../../public/assets/logo.svg"  alt="Company Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-maroon">Client Project Tracker</h1>
