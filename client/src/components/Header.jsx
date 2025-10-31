@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LayoutDashboard, Users, Briefcase, Lock, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import logo from '../assets/logo.png';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,7 +55,15 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="w-[100px] md:w-[150px] h-10 md:h-14 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow duration-300 p-2">
-              <img src={logo} alt="Logo" className="w-full h-full object-contain" />
+              <img 
+                src="assets/logo.svg" 
+                alt="Logo" 
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = '<span class="text-maroon font-bold text-xl">LOGO</span>';
+                }}
+              />
             </div>
           </div>
 
@@ -106,7 +113,6 @@ const Header = () => {
                     : 'text-darkBrown hover:bg-lightPink hover:text-maroon'
                   }`}
               >
-                {/* <Lock className="w-4 h-4" /> */}
                 Admin
               </button>
             )}
