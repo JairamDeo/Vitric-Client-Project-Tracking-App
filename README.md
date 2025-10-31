@@ -104,20 +104,10 @@ Vitric Client Project Tracking/
 Create a `.env` file in the `backend/` folder with the following variables:
 
 ```env
-# MongoDB Atlas Connection String
-# Replace with your own MongoDB Atlas cluster URL
 MONGODB_URI=mongodb+srv://VitricCPT:VitricCPT123@cluster0.dov59b8.mongodb.net/client-tracker?appName=Cluster0
-
-# Server Port
 PORT=5000
-
-# Environment
 NODE_ENV=development
-
-# JWT Secret Key (Generate a strong random string for production)
 JWT_SECRET=8debbfc6dd78f38e570f4142d4a4ae19ca59cca0e2a271497bf2a39f7ad8433a9161f0508cb9f764711f4f4f4ce0cb897d76a9c42ceac3b0cf7a406382e31df4
-
-# Frontend URL (for CORS)
 FRONTEND_URL=http://localhost:5173
 ```
 
@@ -196,7 +186,9 @@ This will install all required frontend packages:
 
 ```bash
 cd backend
-npm start
+node index.js
+or
+nodemon
 # Or for development with auto-reload:
 # nodemon index.js
 ```
@@ -206,7 +198,7 @@ The backend server will run on `http://localhost:5000`
 **Verify**: Open `http://localhost:5000` in your browser. You should see:
 ```json
 {
-  "message": "🚀 Client Project Tracker API",
+  "message": " Client Project Tracker API",
   "version": "1.0.0",
   "status": "Running",
   "endpoints": {
@@ -753,7 +745,6 @@ Pratap Nagar Main Road, Nagpur, 440010
 
 ---
 
-**Last Updated:** December 2024
+**Last Updated:** December 2025
 
 For issues or questions, please refer to the API documentation above or check the code comments.
-
