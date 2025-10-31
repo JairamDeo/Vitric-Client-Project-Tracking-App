@@ -40,6 +40,7 @@ function App() {
               <Route exact path='/project' element={<Projects />} />
               <Route exact path='/admin-login' element={<AdminLogin />} />
             </Routes>
+            
           </Suspense>
         </div>
       </Router>
