@@ -8,13 +8,13 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // 👈 Important — allow cookies to be sent automatically
+  withCredentials: true, //  Important — allow cookies to be sent automatically
 });
 
 // Optional: attach Authorization header from cookie (if backend still expects it)
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('adminToken'); // 👈 read from cookies instead of localStorage
+    const token = Cookies.get('adminToken'); //  read from cookies instead of localStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
